@@ -3,4 +3,8 @@
 
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="guess_quality_low">Eh...</string>
+    <string name="guess_quality_medium">Nice</string>
+    <string name="guess_quality_high">Awesome!</string>
+    <string name="guess_quality_max">Perfect!</string>
 </resources>

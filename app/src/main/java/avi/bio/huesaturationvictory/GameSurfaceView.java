@@ -13,7 +13,10 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import static android.util.Log.d;
+import java.util.ArrayList;
+import java.util.Locale;
+
+import static android.R.attr.x;
 
 /**
  * Created by avi on 11/19/16.
@@ -21,31 +24,34 @@ import static android.util.Log.d;
 
 public class GameSurfaceView extends SurfaceView implements Runnable {
 
-    // This is our thread
-    private Thread mGameThread = null;
-    private long mStartTime;
+    static final int UI_PADDING = 20; // px
+    static final int MAX_GUESS_TIME = 5_000; // ms
+    static final int MAX_ROUND_TIME = 30_000; // ms
 
-    private int mBackgroundColor;
-    private int mCircleColor;
+    Thread mGameThread = null;
 
-    private float[] deltaRotationVector = new float[4];
+    int mPoints;
+    int mSecondsRemainingInRound;
 
-    private String mText;
+    long mTimeGuessStarted;
+    long mTimeRoundStarted;
 
-    private SurfaceHolder mHolder;
+    int mBackgroundColor;
+    int mCircleColor;
 
-    private Vibrator mVibrator;
+    ArrayList<HSVGuess> mGuesses;
 
-    volatile boolean playing;
+    SurfaceHolder mHolder;
+    Vibrator mVibrator;
 
-    // A Canvas and a Paint object
+    volatile boolean mIsPlaying;
+
     Canvas mCanvas;
-    Paint mPaint;
+    Paint mDefaultPaint;
 
-    // This variable tracks the game frame rate
     long fps;
 
-    // This is used to help calculate the fps
+    // Used to help calculate the fps
     private long timeThisFrame;
 
     public GameSurfaceView(Context context) {
@@ -59,32 +65,37 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
     }
 
     private void init(Context context) {
-        // Initialize ourHolder and paint objects
         mHolder = getHolder();
-        mPaint = new Paint();
-        mPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
-        Typeface azoSans = Typeface.createFromAsset(getContext().getAssets(), "fonts/azo-sans-uber.ttf");
-        mPaint.setTypeface(azoSans);
+
+        mDefaultPaint = new Paint();
+        mDefaultPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
+        Typeface azoSans = Typeface.createFromAsset(context.getAssets(), "fonts/azo-sans-uber.ttf");
+        mDefaultPaint.setTypeface(azoSans);
+        mDefaultPaint.setColor(Color.WHITE);
+        mDefaultPaint.setTextSize(80);
+
+        startNewRound();
 
         mVibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
 
+        mIsPlaying = true;
+    }
+
+    private void startNewRound() {
+        mPoints = 0;
+        mTimeRoundStarted = System.currentTimeMillis();
+        mGuesses = new ArrayList<>();
         resetColors();
-
-        // Set our boolean to true - game on!
-        playing = true;
     }
 
-    public void setRotationVector(float[] rotationVector) {
-//        Log.d("HSV", String.format("%f, %f, %f", deltaRotationVector[0], deltaRotationVector[1], deltaRotationVector[2]));
-        deltaRotationVector = rotationVector;
-    }
+    public void setColorFromRotationVector(float[] rotationVector) {
+        // TODO: Sometimes the vector is empty. Not sure why.
+        if (rotationVector[0] == 0) return;
 
-    private void update() {
-        if (deltaRotationVector[0] == 0) return;
         float[] hsv = new float[3];
         Color.colorToHSV(mCircleColor, hsv);
-        float hue = (deltaRotationVector[0] + 1) * 180;
-        float saturation = deltaRotationVector[1] + 1;
+        float hue = (rotationVector[0] + 1) * 180;
+        float saturation = rotationVector[1] + 1;
         hsv[0] = hue;
         hsv[1] = saturation;
         // we keep value constant
@@ -92,9 +103,19 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
         mBackgroundColor = Color.HSVToColor(hsv);
     }
 
+    private void update() {
+        long currentTime = System.currentTimeMillis();
+        long msSinceRoundStarted = currentTime - mTimeRoundStarted + 1;
+        mSecondsRemainingInRound = Math.round((MAX_ROUND_TIME - msSinceRoundStarted) / 1000);
+
+        if (mSecondsRemainingInRound == 0) {
+            startNewRound();
+        }
+    }
+
     private void resetColors() {
-        mStartTime = SystemClock.elapsedRealtime();
-        mVibrator.vibrate(250);
+        mTimeGuessStarted = SystemClock.elapsedRealtime();
+//        mVibrator.vibrate(250);
         mCircleColor = Color.HSVToColor(new float[]{
                 (float)Math.random() * 360,
                 Math.max(10, (float)Math.random()),
@@ -104,69 +125,156 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
 
     private void draw() {
         // Make sure our drawing surface is valid or we crash
-        if (mHolder.getSurface().isValid()) {
-            // Lock the canvas ready to draw
-            // Make the drawing surface our canvas object
-            mCanvas = mHolder.lockCanvas();
+        if (!mHolder.getSurface().isValid()) return;
 
-            // Draw the background color
-            mCanvas.drawColor(mBackgroundColor);
+        mCanvas = mHolder.lockCanvas();
 
-            // Choose the brush color for drawing
-            mPaint.setColor(mCircleColor);
+        if (mCanvas == null) return;
 
-            // Draw the circle in the center (shrinking)
-            long endTime = SystemClock.elapsedRealtime();
-            long elapsedMilliSeconds = endTime - mStartTime + 1;
-            mCanvas.drawCircle(
-                    mCanvas.getWidth() / 2,
-                    mCanvas.getHeight() / 2,
-                    (mCanvas.getHeight() / 4) - elapsedMilliSeconds / 50,
-                    mPaint
-            );
+        // Timestamps used for animation
+        // TODO: Move to update()
+        long msSinceGuessStarted = SystemClock.elapsedRealtime() - mTimeGuessStarted + 1;
 
-            // Choose the brush color for drawing
-            mPaint.setColor(Color.argb(255,  249, 129, 0));
+        if (msSinceGuessStarted > MAX_GUESS_TIME) {
+            resetColors();
+        }
 
-            // Make the text a bit bigger
-            mPaint.setTextSize(45);
+        // Draw background color
+        mCanvas.drawColor(mBackgroundColor);
 
-            // Display the current fps on the screen
-            mCanvas.drawText("FPS:" + fps, 20, 40, mPaint);
+        // Draw circle
+        Paint circlePaint = new Paint(mDefaultPaint);
+        circlePaint.setColor(mCircleColor);
+        mCanvas.drawCircle(
+                mCanvas.getWidth() / 2,
+                mCanvas.getHeight() / 2,
+                (mCanvas.getHeight() / 4) - msSinceGuessStarted / 20,
+                circlePaint
+        );
 
-            // Choose the brush color for drawing
-            mPaint.setColor(Color.WHITE);
+        // Draw FPS
+        Paint fpsPaint = new Paint(mDefaultPaint);
+        fpsPaint.setColor(Color.WHITE);
+        fpsPaint.setTextSize(45);
+        fpsPaint.setTextAlign(Paint.Align.RIGHT);
+        drawTextWithOutline("FPS: " + fps,
+                Color.BLACK,
+                mCanvas.getWidth() - UI_PADDING,
+                mCanvas.getHeight() - UI_PADDING,
+                fpsPaint
+        );
 
-            if (mText != null) {
-                // Make the text a bit bigger
-                mPaint.setTextSize(100);
 
+        // Draw score
+        Paint scorePaint = new Paint(mDefaultPaint);
+        scorePaint.setColor(Color.WHITE);
+        scorePaint.setTextAlign(Paint.Align.RIGHT);
+        drawTextWithOutline("Score: " + mPoints,
+                Color.BLACK,
+                mCanvas.getWidth() - UI_PADDING,
+                80,
+                scorePaint
+        );
 
+        // Draw time remaining
+        Paint timerPaint = new Paint(mDefaultPaint);
+        timerPaint.setTextAlign(Paint.Align.LEFT);
+        drawTextWithOutline("Time remaining: " + mSecondsRemainingInRound,
+                Color.BLACK,
+                UI_PADDING,
+                80,
+                timerPaint
+        );
 
-                int xPos = (mCanvas.getWidth() / 2);
-                int yPos = (int) ((mCanvas.getHeight() / 2) - ((mPaint.descent() + mPaint.ascent()) / 2));
-                //((textPaint.descent() + textPaint.ascent()) / 2) is the distance from the baseline to the center.
+        if (!mGuesses.isEmpty()) {
+            HSVGuess latestGuess = mGuesses.get(mGuesses.size() - 1);
 
-                mCanvas.drawText(mText, xPos, yPos, mPaint);
+            float fadeDelay = 250;
+
+            float textOpacity = 255 - ((msSinceGuessStarted - fadeDelay) / 5);
+            float offset = - (msSinceGuessStarted) / 4;
+            if (msSinceGuessStarted < fadeDelay) {
+                textOpacity = 255;
             }
 
-            // Draw everything to the screen
-            // and unlock the drawing surface
-            mHolder.unlockCanvasAndPost(mCanvas);
+            int outlineColor = Color.argb(Math.round(textOpacity), 25, 25, 25);
+            int innerColor = Color.argb(Math.round(textOpacity), 255, 255, 255);
+
+            Paint guessPaint = new Paint(mDefaultPaint);
+            guessPaint.setTextAlign(Paint.Align.CENTER);
+            guessPaint.setTextSize(150);
+            guessPaint.setColor(innerColor);
+
+            String guessString = String.format(
+                    Locale.getDefault(),
+                    "%s +%d",
+                    getQualityString(latestGuess.quality),
+                    latestGuess.points
+            );
+
+            if (textOpacity > 0) {
+                float centerX = (mCanvas.getWidth() / 2);
+                float centerY = ((mCanvas.getHeight() / 2) - ((guessPaint.descent() + guessPaint.ascent()) / 2));
+                centerY += offset;
+                drawTextWithOutline(guessString, outlineColor, centerX, centerY, guessPaint);
+            }
         }
+
+        // Draw everything to the screen
+        // and unlock the drawing surface
+        mHolder.unlockCanvasAndPost(mCanvas);
+    }
+
+    private String getQualityString(GuessQuality quality) {
+        switch (quality) {
+            case LOW:
+                return getContext().getString(R.string.guess_quality_low);
+            case MEDIUM:
+                return getContext().getString(R.string.guess_quality_medium);
+            case HIGH:
+                return getContext().getString(R.string.guess_quality_high);
+            case MAX:
+                return getContext().getString(R.string.guess_quality_max);
+            default:
+                return "Invalid quality";
+        }
+    }
+
+    private void drawTextWithOutline(String text, int outlineColor, float x, float y, Paint paint) {
+        Paint outlinePaint = new Paint(paint);
+        outlinePaint.setStyle(Paint.Style.STROKE);
+        outlinePaint.setStrokeWidth(paint.getTextSize() / 20);
+        outlinePaint.setColor(outlineColor);
+        mCanvas.drawText(text, x, y, paint);
+        mCanvas.drawText(text, x, y, outlinePaint);
+    }
+
+//    private void drawTextAtCenterOfCanvasWithVOffset(String text, Paint paint, float offset) {
+//        int x = (mCanvas.getWidth() / 2);
+//        int y = (int) ((mCanvas.getHeight() / 2) - ((paint.descent() + paint.ascent()) / 2));
+////        y = (int) (paint.descent() - paint.ascent() / 2) + 100;
+//        y += offset;
+//        mCanvas.drawText(text, x, y, paint);
+//    }
+
+    private void addGuess() {
+        HSVGuess guess = new HSVGuess(mBackgroundColor, mCircleColor);
+        mPoints += guess.points;
+        mGuesses.add(guess);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        Log.d("HSV", "onTouchEvent()");
-        mText = "Excellent!";
+        addGuess();
+        resetColors();
+
         return super.onTouchEvent(event);
     }
 
     // If SimpleGameEngine Activity is paused/stopped
     // shutdown our thread.
     public void pause() {
-        playing = false;
+        mIsPlaying = false;
         try {
             mGameThread.join();
         } catch (InterruptedException e) {
@@ -177,7 +285,7 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
     // If SimpleGameEngine Activity is started theb
     // start our thread.
     public void resume() {
-        playing = true;
+        mIsPlaying = true;
         mGameThread = new Thread(this);
         mGameThread.start();
     }
@@ -200,7 +308,7 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
             // We can then use the result to
             // time animations and more.
             timeThisFrame = System.currentTimeMillis() - startFrameTime;
-            if (timeThisFrame > 0) {
+            if (timeThisFrame > 0 && timeThisFrame % 5 == 0) {
                 fps = 1000 / timeThisFrame;
             }
 

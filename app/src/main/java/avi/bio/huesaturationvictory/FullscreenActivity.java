@@ -35,7 +35,8 @@ public class FullscreenActivity extends AppCompatActivity {
         mSensorEngine = new SensorEngine(new SensorChangedListener() {
             @Override
             public void onSensorChanged(float[] rotationVector) {
-                mSurfaceView.setRotationVector(rotationVector);
+//                Log.d("HSV", String.format("%f, %f, %f", rotationVector[0], rotationVector[1], rotationVector[2]));
+                mSurfaceView.setColorFromRotationVector(rotationVector);
             }
         });
     }
