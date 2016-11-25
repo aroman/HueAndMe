@@ -22,8 +22,6 @@ public class SensorEngine implements SensorEventListener {
     private static final float NS2S = 1.0f / 1000000000.0f;
     private float mTimestamp;
 
-
-
     public SensorEngine(SensorChangedListener listener) {
         mListener = listener;
     }

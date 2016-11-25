@@ -1,10 +1,7 @@
 package avi.bio.huesaturationvictory;
 
-import android.content.res.Resources;
 import android.graphics.Color;
-
-import static android.content.res.Resources.getSystem;
-import static android.os.Build.VERSION_CODES.M;
+import android.util.Log;
 
 /**
  * Created by avi on 11/23/16.
@@ -12,53 +9,49 @@ import static android.os.Build.VERSION_CODES.M;
 
 public class HSVGuess {
 
-    public final GuessQuality quality;
-    public final int points;
-    public final long tsCreated;
+    private static final double LAB_BIN_SPAN = 5;
 
-    private int mColorGuessed;
-    private int mColorActual;
+    public final int points;
+    public final GuessQuality quality;
+    public final long tsCreated;
 
     public HSVGuess(int colorGuessed, int colorActual) {
         tsCreated = System.currentTimeMillis();
-        mColorGuessed = colorGuessed;
-        mColorActual = colorActual;
 
-        points = calcuatePoints();
-        assert points >= 0;
-        quality = qualityFromPoints();
-    }
+        LabColor a = LabColor.fromRGBr(
+                Color.red(colorGuessed),
+                Color.green(colorGuessed),
+                Color.blue(colorGuessed),
+                LAB_BIN_SPAN
+        );
+        LabColor b = LabColor.fromRGBr(
+                Color.red(colorActual),
+                Color.green(colorActual),
+                Color.blue(colorActual),
+                LAB_BIN_SPAN
+        );
 
-    private GuessQuality qualityFromPoints() {
-        if (points >= 0 && points <= 40) {
-            return GuessQuality.LOW;
+        // Calculate dE00 color difference
+        double difference = LabColor.ciede2000(a, b);
+        Log.d("HSV", "Raw difference: " + difference);
+        // Clamp to 0-100
+        difference = Math.min(Math.max(difference, 1), 100);
+
+        if (difference < 2) {
+            quality = GuessQuality.MAX;
+            points = 100;
         }
-        if (points > 40 && points <= 75) {
-            return GuessQuality.MEDIUM;
+        else if (difference < 12) {
+            quality = GuessQuality.HIGH;
+            points = 25;
         }
-        if (points > 75 && points <= 97) {
-            return GuessQuality.HIGH;
+        else if (difference < 30) {
+            quality = GuessQuality.MEDIUM;
+            points = 10;
+        } else {
+            quality = GuessQuality.LOW;
+            points = 0;
         }
-        if (points > 97) {
-            return GuessQuality.MAX;
-        }
-        throw new IllegalStateException(String.format("No quality associated with point value of %d", points));
-    }
-
-    private int calcuatePoints() {
-        int total = 0;
-
-        float[] a = new float[3];
-        Color.colorToHSV(mColorGuessed, a);
-
-        float[] b = new float[3];
-        Color.colorToHSV(mColorActual, b);
-
-        for (int i = 0; i < a.length; i++) {
-            total += Math.abs(b[i] - a[i]);
-        }
-
-        return Math.max(0, Math.round(((254 - total) / (float)2.55)));
     }
 
 }
