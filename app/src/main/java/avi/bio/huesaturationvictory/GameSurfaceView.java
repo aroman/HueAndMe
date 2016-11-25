@@ -38,8 +38,14 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
     static final int UI_PADDING = 20; // px
     static final int MAX_GUESS_TIME = 5_000; // ms
     static final int MAX_ROUND_TIME = 30_000; // ms
+    static final int HUE_MAX = 360; // degrees
+    // it's hard to turn your phone fully vertically
+    // so we want to treat the upper and lower 60 degrees
+    // as actually being 0 values, to make them more easily
+    // accessible.
+    static final int HUE_HANDICAP = 60; // degrees
 
-    GameState mState;
+    volatile GameState mState;
 
     Thread mGameThread = null;
 
@@ -58,15 +64,10 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
     SurfaceHolder mHolder;
     Vibrator mVibrator;
 
-    volatile boolean mIsPlaying;
+    volatile boolean mIsStopped;
 
     Canvas mCanvas;
     Paint mDefaultPaint;
-
-    long fps;
-
-    // Used to help calculate the fps
-    private long timeThisFrame;
 
     public GameSurfaceView(Context context) {
         super(context);
@@ -96,16 +97,15 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
         mSoundPool = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
         mSoundIds = new int[10];
         mSoundIds[0] = mSoundPool.load(context, R.raw.zap, 1);
+        mSoundIds[1] = mSoundPool.load(context, R.raw.fail, 1);
 
         mState = GameState.PRE_ROUND;
 
         mVibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-
-        mIsPlaying = true;
     }
 
     public void shutdown() {
-        mIsPlaying = false;
+        mIsStopped = true;
         mSoundPool.release();
     }
 
@@ -121,16 +121,26 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
         resetColors();
     }
 
-    public void setColorFromRotationVector(float[] rotationVector) {
-        // TODO: Sometimes the vector is empty. Not sure why.
-        if (rotationVector[0] == 0) return;
+    private float rescale(float oldVal, float oldMin, float oldMax, float newMin, float newMax) {
+        float oldRange = (oldMax - oldMin);
+        float newRange = (newMax - newMin);
+        float newVal = (((oldVal - oldMin) * newRange) / oldRange) + newMin;
+        return newVal;
+    }
 
-        float[] hsv = new float[3];
-        Color.colorToHSV(mCircleColor, hsv);
-        float hue = (rotationVector[0] + 1) * 180;
-        hsv[0] = hue;
+    private float clamp(float value, float min, float max) {
+        return Math.min(max, Math.max(min, value));
+    }
 
-        mBackgroundColor = Color.HSVToColor(hsv);
+    public void onRotationChange(float rotation) {
+        // TODO: Sometimes the rotation is empty. Not sure why.
+        if (rotation == 0) return;
+
+        float hue = (rotation + 1) * (HUE_MAX / 2);
+        hue = clamp(hue, HUE_HANDICAP, HUE_MAX - HUE_HANDICAP);
+        hue = rescale(hue, HUE_HANDICAP, HUE_MAX - HUE_HANDICAP, 0, HUE_MAX);
+
+        mBackgroundColor = Color.HSVToColor(new float[]{hue, 1, 1});
     }
 
     private void update() {
@@ -219,17 +229,6 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
                     radius - Easing.easeInSine(msSinceGuessStarted, 0, radius, MAX_GUESS_TIME),
                     circlePaint
             );
-
-            // Draw FPS
-            Paint fpsPaint = new Paint(mDefaultPaint);
-            fpsPaint.setTextSize(45);
-            fpsPaint.setTextAlign(Paint.Align.RIGHT);
-            drawTextWithOutline("FPS: " + fps,
-                    mCanvas.getWidth() - UI_PADDING,
-                    mCanvas.getHeight() - UI_PADDING,
-                    fpsPaint
-            );
-
 
             // Draw score
             Paint scorePaint = new Paint(mDefaultPaint);
@@ -330,8 +329,12 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
     }
 
     private void addGuess() {
-        playSound(0);
         HSVGuess guess = new HSVGuess(mBackgroundColor, mCircleColor);
+        if (guess.quality == GuessQuality.LOW) {
+            playSound(1);
+        } else {
+            playSound(0);
+        }
         mPoints += guess.points;
         mGuesses.add(guess);
     }
@@ -356,44 +359,21 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
         return super.onTouchEvent(event);
     }
 
-    // If SimpleGameEngine Activity is paused/stopped
-    // shutdown our thread.
     public void pause() {
-        mIsPlaying = false;
-        try {
-            mGameThread.join();
-        } catch (InterruptedException e) {
-            Log.e("Error:", "joining thread");
-        }
+        mIsStopped = true;
     }
 
-    // If SimpleGameEngine Activity is started theb
-    // start our thread.
     public void resume() {
-        mIsPlaying = true;
+        mIsStopped = false;
         mGameThread = new Thread(this);
         mGameThread.start();
     }
 
     @Override
     public void run() {
-
-        while (true) {
-            long startFrameTime = System.currentTimeMillis();
-
+        while (!mIsStopped) {
             update();
-
             draw();
-
-            // Calculate the fps this frame
-            // We can then use the result to
-            // time animations and more.
-            timeThisFrame = System.currentTimeMillis() - startFrameTime;
-            if (timeThisFrame > 0 && timeThisFrame % 5 == 0) {
-                fps = 1000 / timeThisFrame;
-            }
-
         }
-
     }
 }

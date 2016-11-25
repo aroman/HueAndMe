@@ -35,8 +35,8 @@ public class FullscreenActivity extends AppCompatActivity {
         mSensorEngine = new SensorEngine(new SensorChangedListener() {
             @Override
             public void onSensorChanged(float[] rotationVector) {
-//                Log.d("HSV", String.format("%f, %f, %f", rotationVector[0], rotationVector[1], rotationVector[2]));
-                mSurfaceView.setColorFromRotationVector(rotationVector);
+//                Log.d("HSV", String.format("%f", rotationVector[0]));
+                mSurfaceView.onRotationChange(rotationVector[1]);
             }
         });
     }
@@ -55,7 +55,7 @@ public class FullscreenActivity extends AppCompatActivity {
         mSensorManager.registerListener(
                 mSensorEngine,
                 mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY),
-                SensorManager.SENSOR_DELAY_GAME
+                SensorManager.SENSOR_DELAY_FASTEST
         );
     }
 
@@ -78,7 +78,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
         // TODO: Not working
         // Tell the gameView pause method to execute
-//        mSurfaceView.pause();
+        mSurfaceView.pause();
 
         mSensorManager.unregisterListener(
                 mSensorEngine,
