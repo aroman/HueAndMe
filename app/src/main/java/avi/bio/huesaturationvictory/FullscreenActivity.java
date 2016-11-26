@@ -6,6 +6,7 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 
 /**
@@ -42,21 +43,17 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        hide();
+    public boolean onTouchEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            hide();
+        }
+        return super.onTouchEvent(event);
     }
 
     @Override
     protected void onStart() {
         Log.d("HSV", "onStart()");
         super.onResume();
-
-        mSensorManager.registerListener(
-                mSensorEngine,
-                mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY),
-                SensorManager.SENSOR_DELAY_FASTEST
-        );
     }
 
     @Override
@@ -67,6 +64,12 @@ public class FullscreenActivity extends AppCompatActivity {
         // Tell the gameView resume method to execute
         mSurfaceView.resume();
 
+        mSensorManager.registerListener(
+                mSensorEngine,
+                mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY),
+                SensorManager.SENSOR_DELAY_FASTEST
+        );
+
         hide();
     }
 
@@ -76,8 +79,6 @@ public class FullscreenActivity extends AppCompatActivity {
         Log.d("HSV", "onPause()");
         super.onPause();
 
-        // TODO: Not working
-        // Tell the gameView pause method to execute
         mSurfaceView.pause();
 
         mSensorManager.unregisterListener(
@@ -87,6 +88,7 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     private void hide() {
+        Log.d("HSV", "hide() called");
         mSurfaceView.setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                         | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION

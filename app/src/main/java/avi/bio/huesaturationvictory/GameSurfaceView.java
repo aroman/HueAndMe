@@ -29,8 +29,7 @@ import java.util.Locale;
 enum GameState {
     PRE_ROUND,
     IN_ROUND,
-    ROUND_WON,
-    ROUND_LOST,
+    POST_ROUND,
 }
 
 public class GameSurfaceView extends SurfaceView implements Runnable {
@@ -51,6 +50,7 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
 
     int mPoints;
     int mSecondsRemainingInRound;
+    int mLastBlip = 0;
 
     long mTimeGuessStarted;
     long mTimeRoundStarted;
@@ -98,6 +98,8 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
         mSoundIds = new int[10];
         mSoundIds[0] = mSoundPool.load(context, R.raw.zap, 1);
         mSoundIds[1] = mSoundPool.load(context, R.raw.fail, 1);
+        mSoundIds[2] = mSoundPool.load(context, R.raw.timer_blip, 1);
+        mSoundIds[3] = mSoundPool.load(context, R.raw.timer_expired, 1);
 
         mState = GameState.PRE_ROUND;
 
@@ -114,11 +116,12 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
     }
 
     private void startNewRound() {
+        Log.d("HSV", "Starting new round");
         mState = GameState.IN_ROUND;
         mPoints = 0;
         mTimeRoundStarted = System.currentTimeMillis();
         mGuesses = Collections.synchronizedList(new ArrayList<HSVGuess>());
-        resetColors();
+        resetColor();
     }
 
     private float rescale(float oldVal, float oldMin, float oldMax, float newMin, float newMax) {
@@ -144,16 +147,33 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
     }
 
     private void update() {
-        long currentTime = System.currentTimeMillis();
-        long msSinceRoundStarted = currentTime - mTimeRoundStarted + 1;
-        mSecondsRemainingInRound = Math.round((MAX_ROUND_TIME - msSinceRoundStarted) / 1000);
 
-        if (mSecondsRemainingInRound == 0) {
-            mState = GameState.ROUND_WON;
+        if (mState == GameState.IN_ROUND) {
+            long currentTime = System.currentTimeMillis();
+            long msSinceRoundStarted = currentTime - mTimeRoundStarted + 1;
+            mSecondsRemainingInRound = Math.round((MAX_ROUND_TIME - msSinceRoundStarted) / 1000);
+            long msSinceGuessStarted = SystemClock.elapsedRealtime() - mTimeGuessStarted + 1;
+
+            // if guess time ran out, new color
+            if (msSinceGuessStarted > MAX_GUESS_TIME) {
+                resetColor();
+            }
+
+            // if round time ran out, end game
+            if (mSecondsRemainingInRound <= 0) {
+                mLastBlip = mSecondsRemainingInRound;
+                mState = GameState.POST_ROUND;
+                playSound(3);
+            }
+            // play count down
+            else if (mSecondsRemainingInRound <= 5 && mLastBlip != mSecondsRemainingInRound) {
+                mLastBlip = mSecondsRemainingInRound;
+                playSound(2);
+            }
         }
     }
 
-    private void resetColors() {
+    private void resetColor() {
         mTimeGuessStarted = SystemClock.elapsedRealtime();
         mCircleColor = Color.HSVToColor(new float[]{ (float)Math.random() * 360, 1, 1 });
     }
@@ -182,22 +202,16 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
         float centerY = ((mCanvas.getHeight() / 2) - ((statePaint.descent() + statePaint.ascent()) / 2));
 
         if (mState == GameState.PRE_ROUND) {
+//            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.logotype);
+//            mCanvas.drawBitmap(bitmap, centerX, centerY, null);
+//            mCanvas.drawBitmap();
             drawTextWithOutline("HUE & ME",
                     centerX,
                     centerY,
                     statePaint
             );
         }
-        else if (mState == GameState.ROUND_LOST) {
-            drawTextWithOutline("ROUND LOST!",
-                    Color.RED,
-                    Color.BLACK,
-                    centerX,
-                    centerY,
-                    statePaint
-            );
-        }
-        else if (mState == GameState.ROUND_WON) {
+        else if (mState == GameState.POST_ROUND) {
             drawTextWithOutline("Time's up!",
                     centerX,
                     centerY,
@@ -211,11 +225,8 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
                     centerY + 200,
                     pointsPaint
             );
-        } else {
-            if (msSinceGuessStarted > MAX_GUESS_TIME) {
-                resetColors();
-            }
-
+        }
+        else {
             // Draw background color
             mCanvas.drawColor(mBackgroundColor);
 
@@ -344,17 +355,19 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
         if (mState == GameState.PRE_ROUND) {
             startNewRound();
         }
-        if (mState == GameState.IN_ROUND) {
+        else if (mState == GameState.IN_ROUND) {
             long msSinceGuessStarted = SystemClock.elapsedRealtime() - mTimeGuessStarted + 1;
             if (msSinceGuessStarted > 150) {
                 addGuess();
                 mVibrator.vibrate(250);
-                resetColors();
+                resetColor();
             }
         }
-        else if (mState == GameState.ROUND_WON) {
+        else if (mState == GameState.POST_ROUND) {
             startNewRound();
+            mState = GameState.PRE_ROUND;
         }
+        Log.d("HSV", "New state: " + mState);
 
         return super.onTouchEvent(event);
     }
