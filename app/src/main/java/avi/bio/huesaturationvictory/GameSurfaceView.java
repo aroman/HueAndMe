@@ -1,10 +1,14 @@
 package avi.bio.huesaturationvictory;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.media.AudioManager;
 import android.media.SoundPool;
@@ -58,6 +62,7 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
     int mBackgroundColor;
     int mCircleColor;
 
+    Bitmap mLogo;
     List<HSVGuess> mGuesses;
     SoundPool mSoundPool;
     int[] mSoundIds;
@@ -88,6 +93,8 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
         mDefaultPaint.setTypeface(azoSans);
         mDefaultPaint.setColor(Color.WHITE);
         mDefaultPaint.setTextSize(80);
+
+        mLogo = BitmapFactory.decodeResource(getResources(), R.drawable.logotype);
 
 //        MediaPlayer mPlayer = MediaPlayer.create(context, R.raw.music);
 //        mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -202,14 +209,14 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
         float centerY = ((mCanvas.getHeight() / 2) - ((statePaint.descent() + statePaint.ascent()) / 2));
 
         if (mState == GameState.PRE_ROUND) {
-//            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.logotype);
-//            mCanvas.drawBitmap(bitmap, centerX, centerY, null);
-//            mCanvas.drawBitmap();
-            drawTextWithOutline("HUE & ME",
-                    centerX,
-                    centerY,
-                    statePaint
+            drawScaledBitmap(
+                    mLogo,
+                    mCanvas.getWidth() * 0.7f,
+                    mCanvas.getWidth() / 2,
+                    mCanvas.getHeight() * 0.4f
             );
+            drawButton("play", 100, (mCanvas.getWidth() / 2) - 500, (mCanvas.getHeight() * 0.65f));
+            drawButton("scores", 100, (mCanvas.getWidth() / 2), (mCanvas.getHeight() * 0.65f));
         }
         else if (mState == GameState.POST_ROUND) {
             drawTextWithOutline("Time's up!",
@@ -325,6 +332,59 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
         }
     }
 
+    private void drawScaledBitmap(Bitmap bitmap, float width, float x, float y) {
+        float ratio = width / bitmap.getWidth();
+        float height = bitmap.getHeight() * ratio;
+        RectF dst = new RectF(x - (width / 2), y - (height / 2), x + (width / 2), y + (height/2));
+        mCanvas.drawBitmap(bitmap, null, dst, null);
+    }
+
+    private void drawButton(String text, float textSize, float x, float y) {
+        // Text
+        Paint textPaint = new Paint(mDefaultPaint);
+        textPaint.setTextSize(textSize);
+        textPaint.setTextAlign(Paint.Align.LEFT);
+        textPaint.setColor(Color.WHITE);
+        Rect textBounds = new Rect();
+        textPaint.getTextBounds(text, 0, text.length(), textBounds);
+
+        float strokeWidth = textSize / 6;
+        float padding = strokeWidth * 2.5f;
+        float outerRadius = strokeWidth * 1.5f;
+        float innerRadius = strokeWidth;
+
+        // Outer rect
+        Paint outerPaint = new Paint(mDefaultPaint);
+        outerPaint.setColor(Color.WHITE);
+        outerPaint.setStrokeWidth(25f);
+        RectF outerRect = new RectF(
+                x,
+                y,
+                x + textBounds.width() + 2 * padding + 2 * strokeWidth,
+                y + textBounds.height() + 2 * padding + 2 * strokeWidth
+        );
+
+        // Inner rect
+        Paint innerPaint = new Paint(mDefaultPaint);
+        innerPaint.setColor(Color.BLACK);
+        innerPaint.setStrokeWidth(25f);
+        RectF innerRect = new RectF(
+                x + strokeWidth,
+                y + strokeWidth,
+                x + textBounds.width() + 2 * padding + strokeWidth,
+                y + textBounds.height() + 2 * padding + strokeWidth
+        );
+
+        mCanvas.drawRoundRect(outerRect, outerRadius, outerRadius, outerPaint);
+        mCanvas.drawRoundRect(innerRect, innerRadius, innerRadius, innerPaint);
+        mCanvas.drawText(
+                text,
+                x + padding + strokeWidth,
+                y + padding + strokeWidth + textBounds.height(),
+                textPaint
+        );
+    }
+
     private void drawTextWithOutline(String text, float x, float y, Paint paint) {
         drawTextWithOutline(text, Color.WHITE, Color.BLACK, x, y, paint);
     }
@@ -353,7 +413,7 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (mState == GameState.PRE_ROUND) {
-            startNewRound();
+//            startNewRound();
         }
         else if (mState == GameState.IN_ROUND) {
             long msSinceGuessStarted = SystemClock.elapsedRealtime() - mTimeGuessStarted + 1;
