@@ -1,4 +1,4 @@
-package avi.bio.huesaturationvictory;
+package bio.avi.hueandme;
 
 /**
  * Created by avi on 11/23/16.

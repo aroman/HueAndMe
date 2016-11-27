@@ -9,4 +9,9 @@
         <attr name="metaButtonBarButtonStyle" format="reference" />
     </declare-styleable>
 
+    <declare-styleable name="UIButton">
+        <attr name="text" format="string" />
+        <attr name="textSize" format="float" />
+    </declare-styleable>
+
 </resources>

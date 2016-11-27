@@ -1,0 +1,53 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    tools:context="bio.avi.hueandme.GameActivity">
+
+    <ViewSwitcher
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/game_viewswitcher">
+
+        <bio.avi.hueandme.GameSurfaceView
+            android:id="@+id/game_surfaceview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:keepScreenOn="true"
+            />
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:text="Time's Up"
+                android:ems="10"
+                android:id="@+id/timesUpText"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif"
+                android:textAlignment="center"
+                android:textSize="80dp" />
+
+            <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:text="Score:"
+                android:ems="10"
+                android:id="@+id/scoreText"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif"
+                android:textAlignment="center"
+                android:textSize="80dp" />
+        </LinearLayout>
+
+    </ViewSwitcher>
+
+</FrameLayout>

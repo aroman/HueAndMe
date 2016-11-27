@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/HueSaturationVictory.iml" filepath="$PROJECT_DIR$/HueSaturationVictory.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/hueandme.iml" filepath="$PROJECT_DIR$/hueandme.iml" />
     </modules>
   </component>
 </project>

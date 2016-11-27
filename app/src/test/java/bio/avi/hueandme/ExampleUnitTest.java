@@ -1,4 +1,4 @@
-package avi.bio.huesaturationvictory;
+package bio.avi.hueandme;
 
 import org.junit.Test;
 
