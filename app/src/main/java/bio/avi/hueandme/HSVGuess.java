@@ -33,7 +33,8 @@ public class HSVGuess {
 
         // Calculate dE00 color difference
         double difference = LabColor.ciede2000(a, b);
-        Log.d("HSV", "Raw difference: " + difference);
+//        Log.d("HSV", "Raw difference: " + difference);
+
         // Clamp to 0-100
         difference = Math.min(Math.max(difference, 1), 100);
 

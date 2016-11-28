@@ -12,7 +12,7 @@ import android.widget.ViewSwitcher;
 public class GameActivity extends AppCompatActivity {
 
     private GameSurfaceView mGameSurfaceView;
-    private ViewSwitcher mGameViewSwitcher;
+//    private ViewSwitcher mGameViewSwitcher;
 
     private SensorManager mSensorManager;
     private SensorEngine mSensorEngine;
@@ -29,11 +29,11 @@ public class GameActivity extends AppCompatActivity {
             throw new IllegalStateException("game surface view not found");
         }
 
-        mGameViewSwitcher = (ViewSwitcher) findViewById(R.id.game_viewswitcher);
-
-        if (mGameViewSwitcher == null) {
-            throw new IllegalStateException("game view switcher not found");
-        }
+//        mGameViewSwitcher = (ViewSwitcher) findViewById(R.id.game_viewswitcher);
+//
+//        if (mGameViewSwitcher == null) {
+//            throw new IllegalStateException("game view switcher not found");
+//        }
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensorEngine = new SensorEngine(new SensorChangedListener() {
@@ -43,10 +43,6 @@ public class GameActivity extends AppCompatActivity {
             }
         });
 
-    }
-
-    public void switcheroo() {
-        mGameViewSwitcher.showNext();
     }
 
     @Override

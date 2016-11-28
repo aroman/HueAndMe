@@ -14,4 +14,9 @@
         <attr name="textSize" format="float" />
     </declare-styleable>
 
+    <declare-styleable name="UILabel">
+        <attr name="labelText" format="string" />
+        <attr name="labelSize" format="float" />
+    </declare-styleable>
+
 </resources>

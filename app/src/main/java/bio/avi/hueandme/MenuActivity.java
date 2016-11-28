@@ -36,9 +36,6 @@ public class MenuActivity extends AppCompatActivity {
     public void playGame(View view) {
         Log.d("MenuActivity", "Play game!");
         Intent intent = new Intent(this, GameActivity.class);
-//        EditText editText = (EditText) findViewById(R.id.edit_message);
-//        String message = editText.getText().toString();
-//        intent.putExtra(EXTRA_MESSAGE, message);
         startActivity(intent);
     }
 

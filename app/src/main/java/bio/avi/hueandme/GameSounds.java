@@ -13,7 +13,7 @@ import android.util.Log;
 
 public class GameSounds {
 
-    static final int MAX_SOUND_STREAMS = 10;
+    private static final int MAX_SOUND_STREAMS = 10;
 
     private SoundPool mSoundPool;
     private int[] mSoundIds;

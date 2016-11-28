@@ -27,10 +27,9 @@
             android:weightSum="1"
             android:gravity="center">
 
-            <view
+            <bio.avi.hueandme.UIButton
                 android:layout_width="224dp"
                 android:layout_height="139dp"
-                class="bio.avi.hueandme.UIButton"
                 android:id="@+id/play_button"
                 app:textSize="100"
                 app:text="@string/button_label_play"
@@ -38,10 +37,9 @@
                 android:layout_weight="0.10"
                 android:layout_marginRight="10dp" />
 
-            <view
+            <bio.avi.hueandme.UIButton
                 android:layout_width="224dp"
                 android:layout_height="139dp"
-                class="bio.avi.hueandme.UIButton"
                 android:id="@+id/scores_button"
                 app:textSize="100"
                 app:text="@string/button_label_scores"

@@ -52,6 +52,14 @@ public class UIButton extends View {
         calculateStyles();
     }
 
+    public void setText(String text) {
+        mText = text;
+    }
+
+    public void setTextSize(float textSize) {
+        mTextSize = textSize;
+    }
+
     private void calculateStyles() {
         if (mText == null) return;
         if (mTextSize == 0) return;
@@ -135,12 +143,6 @@ public class UIButton extends View {
     @Override
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-
-        canvas.drawCircle(50, 50, 25, mTextPaint);
-
-        if (mText == null) {
-            throw new IllegalStateException("UIButton text is null. Did you forget to set it?");
-        }
 
         float outerRadius = mStrokeWidth * 1.5f;
         float innerRadius = mStrokeWidth;

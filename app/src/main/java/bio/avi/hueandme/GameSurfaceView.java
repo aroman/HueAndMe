@@ -14,6 +14,8 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ViewSwitcher;
 
 import java.util.ArrayList;
@@ -35,7 +37,7 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
 
     static final int UI_PADDING = 20; // px
     static final int MAX_GUESS_TIME = 5_000; // ms
-    static final int MAX_ROUND_TIME = 6_000; // ms
+    static final int MAX_ROUND_TIME = 30_000; // ms
     static final int HUE_MAX = 360; // degrees
     // it's hard to turn your phone fully vertically
     // so we want to treat the upper and lower 60 degrees
@@ -58,6 +60,9 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
 
     int mBackgroundColor;
     int mCircleColor;
+
+    UILabel mPostRoundScoreLabel;
+    LinearLayout mPostRoundView;
 
     List<HSVGuess> mGuesses;
     SurfaceHolder mHolder;
@@ -92,6 +97,20 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
 //        mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 //        mPlayer.start();
 //        mPlayer.setLooping(true);
+
+//        mPostRoundScoreLabel = (UILabel) findViewById(R.id.postround_score_label);
+//
+//        if (mPostRoundScoreLabel == null) {
+//            throw new IllegalStateException("postround_score_label not found");
+//        }
+
+
+//        mPostRoundView = (LinearLayout) findViewById(R.id.postround_layout);
+//
+//        if (mPostRoundView == null) {
+//            throw new IllegalStateException("postround_layout not found");
+//        }
+//
 
         if (!isInEditMode()) {
             mVibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
@@ -182,12 +201,22 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
         float centerX = (mCanvas.getWidth() / 2);
         float centerY = ((mCanvas.getHeight() / 2) - ((statePaint.descent() + statePaint.ascent()) / 2));
 
+
         if (mState == GameState.POST_ROUND) {
             drawTextWithOutline("Time's up!",
                     centerX,
                     centerY,
                     statePaint
             );
+
+//            getParent().bringChildToFront();
+
+//            mPostRoundScoreLabel.setText(
+//                    String.format(
+//                            getResources().getString(R.string.label_postround_score),
+//                            mPoints
+//                    )
+//            );
 
             Paint pointsPaint = new Paint(statePaint);
             pointsPaint.setTextSize(120);

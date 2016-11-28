@@ -9,6 +9,8 @@
     <string name="guess_quality_max">Perfect!</string>
     <string name="button_label_play">play</string>
     <string name="button_label_scores">scores</string>
+    <string name="label_times_up">Time\'s up!</string>
+    <string name="label_postround_score">Score: %1$d points</string>
 
     <string name="title_activity_game">GameActivity</string>
 </resources>
