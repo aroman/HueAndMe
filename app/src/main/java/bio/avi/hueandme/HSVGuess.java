@@ -1,7 +1,10 @@
 package bio.avi.hueandme;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.util.Log;
+
+import static java.security.AccessController.getContext;
 
 /**
  * Created by avi on 11/23/16.
@@ -54,5 +57,21 @@ public class HSVGuess {
             points = 0;
         }
     }
+
+    public static String getQualityString(Context context, GuessQuality quality) {
+        switch (quality) {
+            case LOW:
+                return context.getString(R.string.guess_quality_low);
+            case MEDIUM:
+                return context.getString(R.string.guess_quality_medium);
+            case HIGH:
+                return context.getString(R.string.guess_quality_high);
+            case MAX:
+                return context.getString(R.string.guess_quality_max);
+            default:
+                return "Invalid quality";
+        }
+    }
+
 
 }

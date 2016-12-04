@@ -13,11 +13,19 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+import static android.R.id.list;
+
 /**
  * Created by avi on 11/26/16.
  */
 
 public class UIButton extends View {
+
+    interface OnTapListener {
+        public void onTap();
+    }
+
+    private OnTapListener mListener;
 
     private Paint mTextPaint;
     private Paint mInnerRectPaint;
@@ -58,6 +66,16 @@ public class UIButton extends View {
 
     public void setTextSize(float textSize) {
         mTextSize = textSize;
+    }
+
+    public void setOnTapListener(OnTapListener listener) {
+        mListener = listener;
+    }
+
+    private void onTap() {
+        if (mListener != null) {
+            mListener.onTap();
+        }
     }
 
     private void calculateStyles() {
@@ -123,6 +141,7 @@ public class UIButton extends View {
                 break;
             case MotionEvent.ACTION_UP:
                 mIsHover = false;
+                onTap();
                 break;
             case MotionEvent.ACTION_MOVE:
                 break;

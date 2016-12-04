@@ -4,9 +4,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/black"
+    android:id="@+id/game_framelayout"
     tools:context="bio.avi.hueandme.GameActivity">
 
-    <bio.avi.hueandme.GameSurfaceView
+
+    <bio.avi.hueandme.GameSurface
         android:id="@+id/game_surfaceview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -15,30 +17,53 @@
         />
 
     <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:weightSum="1"
-        android:baselineAligned="false"
-        android:id="@+id/postround_layout"
-        android:visibility="invisible">
+        android:id="@+id/game_postround"
+        android:gravity="center_vertical|center_horizontal"
+        android:background="@android:color/black">
 
         <bio.avi.hueandme.UILabel
-            android:layout_weight="0.5"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             app:labelText="@string/label_times_up"
             app:labelSize="200"
-            android:layout_height="0dp"
-            android:layout_width="0dp" />
+            android:layout_marginBottom="20dp" />
 
         <bio.avi.hueandme.UILabel
-            android:layout_weight="0.5"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/game_postround_label_score"
             app:labelText="@string/label_postround_score"
-            app:labelSize="100"
-            android:layout_height="0dp"
-            android:layout_width="0dp"
-            android:id="@+id/postround_score_label"
-            android:layout_marginTop="20dp" />
+            app:labelSize="120"
+            android:layout_marginBottom="40dp" />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal|clip_vertical">
+
+            <view
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                class="bio.avi.hueandme.UIButton"
+                android:id="@+id/replay_button"
+                app:text="replay"
+                android:layout_weight="1"
+                android:layout_marginRight="10dp"
+                app:textSize="100" />
+
+            <view
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                class="bio.avi.hueandme.UIButton"
+                android:id="@+id/save_score_button"
+                app:text="save score"
+                android:layout_weight="1"
+                app:textSize="100" />
+        </LinearLayout>
 
     </LinearLayout>
 

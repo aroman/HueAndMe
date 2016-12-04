@@ -50,9 +50,13 @@ public class GameSounds {
     }
 
     public void play(int soundId) {
-        mSoundPool.play(mSoundIds[soundId], 1, 1, 1, 0, 1.0f);
+        if (soundId == 1) {
+            mSoundPool.play(mSoundIds[soundId], 1f, 1f, 1, 0, 1.0f);
+        }
+        else {
+            mSoundPool.play(mSoundIds[soundId], 0.25f, 0.25f, 1, 0, 1.0f);
+        }
     }
-
 
     public void release() {
         mSoundPool.release();
