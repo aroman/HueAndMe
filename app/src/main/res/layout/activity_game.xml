@@ -1,0 +1,70 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    android:id="@+id/game_framelayout"
+    tools:context="bio.avi.hueandme.GameActivity">
+
+
+    <bio.avi.hueandme.GameSurface
+        android:id="@+id/game_surfaceview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:keepScreenOn="true"
+        />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/game_postround"
+        android:gravity="center_vertical|center_horizontal"
+        android:background="@android:color/black">
+
+        <bio.avi.hueandme.UILabel
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:labelText="@string/label_times_up"
+            app:labelSize="200"
+            android:layout_marginBottom="20dp" />
+
+        <bio.avi.hueandme.UILabel
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/game_postround_label_score"
+            app:labelText="@string/label_postround_score"
+            app:labelSize="120"
+            android:layout_marginBottom="40dp" />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal|clip_vertical">
+
+            <bio.avi.hueandme.UIButton
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/replay_button"
+                android:onClick="restartGame"
+                app:text="replay"
+                android:layout_weight="1"
+                android:layout_marginRight="10dp"
+                app:textSize="100" />
+
+            <bio.avi.hueandme.UIButton
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/save_score_button"
+                android:onClick="saveScore"
+                app:text="save score"
+                android:layout_weight="1"
+                app:textSize="100" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</FrameLayout>

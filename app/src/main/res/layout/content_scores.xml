@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="bio.avi.hueandme.ScoresActivity"
+    tools:showIn="@layout/activity_scores">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical|center">
+
+        <view
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            class="bio.avi.hueandme.UILabel"
+            app:labelText="top scores"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            app:labelSize="200" />
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/scores_layout"
+            android:gravity="center_vertical|center"></LinearLayout>
+
+    </LinearLayout>
+</android.support.v4.widget.NestedScrollView>
